@@ -16,7 +16,127 @@ public class SkinnedMeshGenerator : MonoBehaviour {
     {
         meshFilter = GetComponent<MeshFilter>();
         meshRenderer = GetComponent<SkinnedMeshRenderer>();
-        GenerateMesh();
+        GenerateMeshEx();
+    }
+    class MeshInfo
+    {
+        public List<Vector3> v=new List<Vector3>();
+        public List<int> tris=new List<int>();
+        public List<BoneWeight> boneWeight = new List<BoneWeight>();
+    }
+    void AddBox(ref MeshInfo meshInfo, int boneIndex, Vector3 centerPos, float scaleX = 1, float scaleY = 1, float scaleZ = 1)
+    {
+        int index = meshInfo.v.Count;
+        meshInfo.v.Add(new Vector3(-scaleX, -scaleY, -scaleZ) + centerPos);
+        meshInfo.v.Add(new Vector3(-scaleX, -scaleY, scaleZ) + centerPos);
+        meshInfo.v.Add(new Vector3(scaleX, -scaleY, scaleZ) + centerPos);
+        meshInfo.v.Add(new Vector3(scaleX, -scaleY, -scaleZ) + centerPos);
+
+        meshInfo.v.Add(new Vector3(-scaleX, scaleY, -scaleZ) + centerPos);
+        meshInfo.v.Add(new Vector3(-scaleX, scaleY, scaleZ) + centerPos);
+        meshInfo.v.Add(new Vector3(scaleX, scaleY, scaleZ) + centerPos);
+        meshInfo.v.Add(new Vector3(scaleX, scaleY, -scaleZ) + centerPos);
+        //아래
+        meshInfo.tris.Add(0 + index);
+        meshInfo.tris.Add(2 + index);
+        meshInfo.tris.Add(1 + index);
+
+        meshInfo.tris.Add(0 + index);
+        meshInfo.tris.Add(3 + index);
+        meshInfo.tris.Add(2 + index);
+        //왼
+        meshInfo.tris.Add(0 + index);
+        meshInfo.tris.Add(1 + index);
+        meshInfo.tris.Add(5 + index);
+
+        meshInfo.tris.Add(0 + index);
+        meshInfo.tris.Add(5 + index);
+        meshInfo.tris.Add(4 + index);
+
+        //앞
+
+        meshInfo.tris.Add(1 + index);
+        meshInfo.tris.Add(6 + index);
+        meshInfo.tris.Add(5 + index);
+
+        meshInfo.tris.Add(1 + index);
+        meshInfo.tris.Add(2 + index);
+        meshInfo.tris.Add(6 + index);
+
+        //오
+
+        meshInfo.tris.Add(3 + index);
+        meshInfo.tris.Add(7 + index);
+        meshInfo.tris.Add(6 + index);
+
+        meshInfo.tris.Add(3 + index);
+        meshInfo.tris.Add(6 + index);
+        meshInfo.tris.Add(2 + index);
+
+        //뒤
+
+        meshInfo.tris.Add(0 + index);
+        meshInfo.tris.Add(7 + index);
+        meshInfo.tris.Add(3 + index);
+
+        meshInfo.tris.Add(0 + index);
+        meshInfo.tris.Add(4 + index);
+        meshInfo.tris.Add(7 + index);
+
+
+        //뚜껑
+        meshInfo.tris.Add(4 + index);
+        meshInfo.tris.Add(5 + index);
+        meshInfo.tris.Add(6 + index);
+
+        meshInfo.tris.Add(4 + index);
+        meshInfo.tris.Add(6 + index);
+        meshInfo.tris.Add(7 + index);
+
+        meshInfo.boneWeight.Add(new BoneWeight() { boneIndex0 = boneIndex, weight0 = 1f });
+        meshInfo.boneWeight.Add(new BoneWeight() { boneIndex0 = boneIndex, weight0 = 1f });
+        meshInfo.boneWeight.Add(new BoneWeight() { boneIndex0 = boneIndex, weight0 = 1f });
+        meshInfo.boneWeight.Add(new BoneWeight() { boneIndex0 = boneIndex, weight0 = 1f });
+        meshInfo.boneWeight.Add(new BoneWeight() { boneIndex0 = boneIndex, weight0 = 1f });
+        meshInfo.boneWeight.Add(new BoneWeight() { boneIndex0 = boneIndex, weight0 = 1f });
+        meshInfo.boneWeight.Add(new BoneWeight() { boneIndex0 = boneIndex, weight0 = 1f });
+        meshInfo.boneWeight.Add(new BoneWeight() { boneIndex0 = boneIndex, weight0 = 1f });
+    }
+    void GenerateMeshEx()
+    {
+        Mesh mesh = new Mesh();
+        MeshInfo meshInfo = new MeshInfo();
+        List<Matrix4x4> bindposes = new List<Matrix4x4>();
+
+        for (int i = 0; i < bones.Length; i++)
+        {
+         //   AddBox(ref meshInfo, i, bones[i].position, 1, 1, 1);
+            bindposes.Add(bones[i].worldToLocalMatrix * transform.worldToLocalMatrix);
+        }
+        
+        AddBox(ref meshInfo, 0, bones[0].position + Vector3.up, 1, 1, 1);//PELVIS
+        AddBox(ref meshInfo, 1, bones[1].position+Vector3.up*2, 2, 2, 1);//SPINE
+        AddBox(ref meshInfo, 2, bones[2].position+Vector3.up*1, 1, 1, 1);//HEAD
+        AddBox(ref meshInfo, 3, bones[3].position + Vector3.up * -2, 1, 2, 1);//LEFTUPPER
+        AddBox(ref meshInfo, 4, bones[4].position + Vector3.up * -1, 1, 1, 1);//LEFTARM
+        AddBox(ref meshInfo, 5, bones[5].position + Vector3.up * -2, 1, 2, 1);//RIGHTUPPER
+        AddBox(ref meshInfo, 6, bones[6].position + Vector3.up * -1, 1, 1, 1);//RIGHTARM
+        AddBox(ref meshInfo, 7, bones[7].position + Vector3.up * -2, 1, 2, 1);//LEFTUPPERLEG
+        AddBox(ref meshInfo, 8, bones[8].position + Vector3.up * -2, 1, 2, 1);//LEFTLEG
+        AddBox(ref meshInfo, 9, bones[9].position + Vector3.up * -2, 1, 2, 1);//RIGHTUPPERLEG
+        AddBox(ref meshInfo, 10, bones[10].position + Vector3.up * -2, 1, 2, 1);//RIGHTLEG
+
+
+        mesh.vertices = meshInfo.v.ToArray();
+        mesh.triangles = meshInfo.tris.ToArray();
+        mesh.boneWeights = meshInfo.boneWeight.ToArray();
+        mesh.bindposes = bindposes.ToArray();
+        meshFilter.mesh = mesh;
+        meshRenderer.sharedMesh = mesh;
+        meshRenderer.bones = bones;
+        meshRenderer.rootBone = rootBone;
+        meshRenderer.material = material;
+        meshRenderer.quality = SkinQuality.Bone2;
     }
     void GenerateMesh()
     {
